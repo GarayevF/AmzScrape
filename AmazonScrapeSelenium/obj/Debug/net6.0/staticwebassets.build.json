@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "WrC0iGgQ+y/Nup5k/o3S/wF4nPrOuuXu6pCFQnhAmew=",
+  "Source": "AmazonScrapeSelenium",
+  "BasePath": "_content/AmazonScrapeSelenium",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}
