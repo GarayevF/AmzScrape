@@ -297,7 +297,84 @@ namespace AmazonScrapeSelenium.Controllers
             return Ok(categories.Count());
         }
 
+        [HttpGet("GetVineProfiles")]
+        public async Task<IActionResult> GetVineProfiles()
+        {
 
+            var driver = new ChromeDriver();
+            driver.Manage().Window.Maximize();
+
+            List<Product> products = await _context.Products.Where(a => a.CategoryId == 39 && a.IsVisited == false).Take(10000).ToListAsync();
+
+            foreach (Product product in products)
+            {
+                driver.Url = product.Link;
+                Thread.Sleep(1000);
+                driver.Navigate().Refresh();
+
+                List<Commenter> commenters = new List<Commenter>();
+
+                if(IsElementPresent(driver, By.CssSelector(@"[data-hook=""see-all-reviews-link-foot""]")))
+                {
+                    driver.Url = driver.FindElement(By.CssSelector(@"[data-hook=""see-all-reviews-link-foot""]")).GetAttribute("href");
+                    Thread.Sleep(1000);
+                    driver.Navigate().Refresh();
+
+                    bool flag = true;
+
+                    while (flag)
+                    {
+                        List<IWebElement> reviews = driver.FindElements(By.CssSelector(@"[data-hook=""review""]")).ToList();
+
+                        foreach (IWebElement review in reviews)
+                        {
+                            if (IsElementPresent(driver, By.CssSelector(".a-row.a-spacing-none > .a-section.celwidget > .a-row.a-spacing-mini.review-data.review-format-strip > span.a-color-success.a-text-bold"), review.FindElement(By.CssSelector(".a-row.a-spacing-none"))))
+                            {
+                                Commenter tempcommenter = new Commenter
+                                {
+                                    FullName = review.FindElement(By.CssSelector(".a-row.a-spacing-none .a-section.celwidget .a-row.a-spacing-mini a .a-profile-content .a-profile-name")).Text,
+                                    Profilelink = review.FindElement(By.CssSelector(".a-row.a-spacing-none .a-section.celwidget .a-row.a-spacing-mini a")).GetAttribute("href")
+                                };
+
+                                commenters.Add(tempcommenter);
+                                
+                            }
+
+                        }
+
+                        if (IsElementPresent(driver, By.CssSelector(".a-last:not(.a-disabled)")))
+                        {
+                            int count = 0;
+                            driver.Url = driver.FindElement(By.CssSelector(".a-last:not(.a-disabled) a")).GetAttribute("href");
+                            repeat:
+                            count++;
+                            Thread.Sleep(1000);
+
+                            if (IsElementPresent(driver, By.CssSelector(".a-section.cr-list-loading.reviews-loading:not(.aok-hidden)")) && count < 6)
+                            {
+                                count++;
+                                if (count == 6) continue;
+                                else goto repeat;
+
+                            }
+                            
+                            
+                        }
+                        else
+                        {
+                            flag = false;
+                        }
+                    }
+                }
+
+                product.IsVisited = true;
+                await _context.Commenters.AddRangeAsync(commenters);
+                await _context.SaveChangesAsync();
+                
+            }
+
+            return Ok();
+        }
 
 
 

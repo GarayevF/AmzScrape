@@ -8,5 +8,6 @@
         public string Link { get; set; }
         public Category? Category { get; set; }
         public int CategoryId { get; set; }
+        public bool IsVisited { get; set; }
     }
 }
